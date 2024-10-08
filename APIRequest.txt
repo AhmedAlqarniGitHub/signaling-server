@@ -16,3 +16,32 @@ Body:
         "avatar": "http://example.com/avatar.png"
     }
 }
+
+URL:
+http://localhost:3000/api/auth/login
+
+Body:
+{
+    "email": "johndoe@example.com",
+    "password": "password123"
+}
+
+
+URL:
+http://localhost:3000/api/contacts/remove
+
+Body:
+{
+    "userId": "670584c4b12912e8db6db6f1",
+    "friendId": "67058c39b12912e8db6db6f6"
+}
+
+
+URL:
+http://localhost:3000/api/contacts/add
+
+Body:
+{
+    "userId": "670584c4b12912e8db6db6f1",
+    "friendId": "67058c39b12912e8db6db6f6"
+}
