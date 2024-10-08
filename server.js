@@ -7,6 +7,7 @@ const socketHandler = require('./socketHandler');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const config = require('./config/main.config'); 
 require('dotenv').config();
 
 // Initialize Express
