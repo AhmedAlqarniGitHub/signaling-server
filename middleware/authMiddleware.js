@@ -4,7 +4,10 @@ const config = require('../config/main.config');
 
 
 module.exports = (req, res, next) => {
-    if(!config.auth.isAuthRequired) return next();
+    if(!config.auth.isAuthRequired){
+        console.log("kkkkkkkkkkkkkkkkkkk")
+        return next();
+    } 
 
     const token = req.header('Authorization').replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
