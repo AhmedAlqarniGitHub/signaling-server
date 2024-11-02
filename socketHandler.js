@@ -1,19 +1,39 @@
 const Message = require('./models/message');
+const User = require('./models/user');
 const redisClient = require('./config/redis');
 
 module.exports = (socket, io, redisClient) => {
+
+
+    if (!redisClient.isOpen) {
+        console.error('Redis client is not connected when setting up socket handler');
+        return; // Prevent setting up the socket events if the client is not connected
+    }
+
+
+    // Listen for the socketId-update event to associate userId with socketId
+    socket.on('socketId-update', async (data) => {
+        const { userId, socketId } = data;
+        try {
+            await User.findByIdAndUpdate(userId, { socketId });
+            console.log(`Socket ID ${socketId} associated with user ${userId}`);
+        } catch (error) {
+            console.error(`Error associating socket ID with user: ${error}`);
+        }
+    });
+
+
     // Handle status updates (user online/offline)
     socket.on('status-update', async (data) => {
         const { userId, status } = data;
+        console.log("aaaaaaaaaaaaaaaaaaaaaaaa")
         await redisClient.set(`status:${userId}`, status);
         io.emit('status-changed', { userId, status });
     });
 
-    // Handle message sending
     socket.on('send-message', async (data) => {
         const { senderId, recipientId, content } = data;
-
-        // Save message in MongoDB
+    
         const message = new Message({
             senderId,
             recipientId,
@@ -21,19 +41,21 @@ module.exports = (socket, io, redisClient) => {
             delivered: false
         });
         await message.save();
-
-        // Check if recipient is online via Redis
-        const recipientStatus = await redisClient.get(`status:${recipientId}`);
-        if (recipientStatus === 'offline') {
-            // Cache message in Redis if recipient is offline
-            await redisClient.rpush(`offline-messages:${recipientId}`, JSON.stringify(message));
-        } else {
-            // Send message in real-time if recipient is online
-            io.to(recipientId).emit('receive-message', message);
+    
+        // Retrieve recipient's socketId from MongoDB
+        const recipient = await User.findById(recipientId);
+        const recipientSocketId = recipient ? recipient.socketId : null;
+    
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit('receive-message', message);
             message.delivered = true;
             await message.save();
+        } else {
+            // Cache message in Redis if recipient is offline
+            await redisClient.rpush(`offline-messages:${recipientId}`, JSON.stringify(message));
         }
     });
+    
 
     // Handle user reconnecting to receive offline messages
     socket.on('user-online', async (userId) => {

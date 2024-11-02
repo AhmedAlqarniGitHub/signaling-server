@@ -25,8 +25,12 @@ function connectToServer(id) {
 
     socket.on('connect', () => {
         console.log(`Connected to server with socket ID: ${socket.id}`);
+
+        // Register user with socketId
+        socket.emit('socketId-update', { userId, socketId: socket.id }); 
         // Inform server that the user is online
         socket.emit('status-update', { userId, status: 'online' });
+
     });
 
     socket.on('disconnect', () => {
@@ -55,6 +59,11 @@ function connectToServer(id) {
 
 // Function to send a message
 function sendMessage(senderId, recipientId, content) {
+    if (!socket || !socket.connected) {
+        console.error('Socket is not connected. Unable to send message.');
+        return; // Prevent sending the message if the socket is not connected
+    }
+    
     socket.emit('send-message', {
         senderId,
         recipientId,
@@ -65,6 +74,11 @@ function sendMessage(senderId, recipientId, content) {
 
 // Function to simulate user coming back online to receive offline messages
 function userOnline(userId) {
+    if (!socket || !socket.connected) {
+        console.error('Socket is not connected. Unable to go online.');
+        return; // Prevent going online if the socket is not connected
+    }
+
     socket.emit('user-online', userId);
     console.log(`User ${userId} is back online and requesting offline messages.`);
 }
@@ -97,7 +111,9 @@ function promptUser() {
                 break;
             case '4':
                 console.log('Exiting...');
-                socket.close();
+                if (socket) {
+                    socket.close();
+                }
                 rl.close();
                 break;
             default:

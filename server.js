@@ -42,17 +42,13 @@ app.use('/api/messages', messageRoutes);
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // Handle errors at the socket connection level
-    socket.on('error', (err) => {
-        console.error(`Socket error from ${socket.id}:`, err);
-    });
-
-    socket.on('connect_error', (err) => {
-        console.error(`Connection error from ${socket.id}:`, err);
-    });
-
-    // Use your socket handler (this contains the logic for status updates, messages, etc.)
-   // socketHandler(socket, io);
+    // Use your socket handler only if Redis client is connected
+    if (redisClient.isOpen) {
+        socketHandler(socket, io, redisClient);
+    } else {
+        console.error('Redis client is not connected when user connected');
+        socket.emit('response', { success: false, error: 'Redis client is not connected' });
+    }
 
     // Handle socket disconnection
     socket.on('disconnect', (reason) => {
