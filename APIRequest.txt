@@ -12,7 +12,6 @@ Body:
     "vcard": {
         "firstName": "John",
         "lastName": "Doe",
-        "bio": "Software Engineer",
         "avatar": "http://example.com/avatar.png"
     }
 }

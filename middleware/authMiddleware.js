@@ -5,7 +5,6 @@ const config = require('../config/main.config');
 
 module.exports = (req, res, next) => {
     if(!config.auth.isAuthRequired){
-        console.log("kkkkkkkkkkkkkkkkkkk")
         return next();
     } 
 

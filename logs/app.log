@@ -34,3 +34,28 @@
 [2024-11-02T20:01:24.753Z] INFO: Redis client is ready to use
 [2024-11-02T20:02:40.814Z] INFO: Connected to Redis
 [2024-11-02T20:02:40.843Z] INFO: Redis client is ready to use
+[2024-11-03T07:59:15.838Z] ERROR: Redis error: Error: Socket closed unexpectedly
+[2024-11-03T21:39:33.644Z] INFO: Connected to Redis
+[2024-11-03T21:39:33.652Z] INFO: Redis client is ready to use
+[2024-11-03T21:41:05.119Z] INFO: Connected to Redis
+[2024-11-03T21:41:05.129Z] INFO: Redis client is ready to use
+[2024-11-03T22:15:24.343Z] INFO: Connected to Redis
+[2024-11-03T22:15:24.363Z] INFO: Redis client is ready to use
+[2024-11-03T22:26:44.122Z] INFO: Connected to Redis
+[2024-11-03T22:26:44.142Z] INFO: Redis client is ready to use
+[2024-11-03T22:27:52.140Z] INFO: Connected to Redis
+[2024-11-03T22:27:52.155Z] INFO: Redis client is ready to use
+[2024-11-03T22:33:17.195Z] INFO: Connected to Redis
+[2024-11-03T22:33:17.216Z] INFO: Redis client is ready to use
+[2024-11-15T19:52:21.173Z] ERROR: Redis error: Error: Socket closed unexpectedly
+[2024-11-15T19:52:21.183Z] ERROR: Redis error: Error: connect ECONNREFUSED 127.0.0.1:6379
+[2024-11-15T19:52:21.184Z] ERROR: Redis error: Error: connect ECONNREFUSED 127.0.0.1:6379
+[2024-12-20T21:50:52.015Z] INFO: Connected to Redis
+[2024-12-20T21:50:52.030Z] INFO: Redis client is ready to use
+[2024-12-20T22:18:02.658Z] INFO: Connected to Redis
+[2024-12-20T22:18:02.687Z] INFO: Redis client is ready to use
+[2024-12-20T22:20:56.726Z] INFO: Connected to Redis
+[2024-12-20T22:20:56.757Z] INFO: Redis client is ready to use
+[2024-12-21T19:59:26.880Z] ERROR: Redis error: Error: Socket closed unexpectedly
+[2024-12-21T19:59:27.673Z] ERROR: Redis error: Error: connect ECONNREFUSED 127.0.0.1:6379
+[2024-12-21T19:59:27.884Z] ERROR: Redis error: Error: connect ECONNREFUSED 127.0.0.1:6379

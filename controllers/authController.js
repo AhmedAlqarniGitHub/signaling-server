@@ -3,13 +3,43 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 exports.signup = async (req, res) => {
-    const { username, email, password } = req.body;
+    const {
+        username,
+        email,
+        password,
+        phone,
+        country,
+        phoneExtension,
+        picture,
+        department,
+        city,
+        company,
+        descruption,
+        firstName,
+        lastName
+    } = req.body;
+
     try {
-        const user = new User({ username, email, password });
+        const user = new User({
+            username,
+            email,
+            password,
+            phone,
+            country,
+            phoneExtension,
+            picture,
+            department,
+            city,
+            company,
+            descruption,
+            firstName,
+            lastName
+        });
+
         await user.save();
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Error creating user' });
+        res.status(500).json({ error: 'Error creating user', details: error.message });
     }
 };
 
