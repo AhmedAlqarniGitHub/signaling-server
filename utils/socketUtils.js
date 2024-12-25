@@ -1,4 +1,13 @@
 const User = require('../models/user');
+const depd = require('depd')('my-module-name');
+
+function oldFunction(a, b) {
+  depd('oldFunction() is deprecated. Please use newFunction() instead.');
+  return a + b;
+}
+
+module.exports = { oldFunction };
+
 
 /**
  * Retrieve a user's socket ID.
@@ -7,6 +16,8 @@ const User = require('../models/user');
  * @returns {string|null} The user's socket ID or null if offline.
  */
 const getUserSocketId = async (redisClient, userId) => {
+    depd('getUserSocketId() is deprecated. Please use room concept instead.');
+
     try {
         let socketId = await redisClient.get(`socketId:${userId}`);
 
@@ -35,6 +46,8 @@ const getUserSocketId = async (redisClient, userId) => {
  * @param {string} socketId - The new socket ID.
  */
 const handleSocketIdUpdate = async (redisClient, userId, socketId) => {
+    depd('handleSocketIdUpdate() is deprecated. Please use room concept instead.');
+
     try {
         await redisClient.set(`socketId:${userId}`, socketId);
         await User.findByIdAndUpdate(userId, { socketId }); // Optional: Can be skipped
@@ -44,7 +57,25 @@ const handleSocketIdUpdate = async (redisClient, userId, socketId) => {
     }
 };
 
+/**
+ * If agent is provided, replace spaces with underscores to keep the room name simpler.
+ * If agent is empty or 'UnknownAgent', you may just return the username.
+ * @param {string} username - The client username.
+ * @param {string} agent - The client agent.
+ * @returns {string|null} The user's socket ID or null if offline.
+ */
+
+function buildRoomName(username, agent) {
+    if (!agent || agent === 'UnknownAgent') {
+      return username; 
+    }
+    return `${username}-${agent.replace(/\s/g, '_')}`;
+  }
+  
+
+
 module.exports = {
     getUserSocketId,
-    handleSocketIdUpdate
+    handleSocketIdUpdate,
+    buildRoomName
 };
