@@ -2,11 +2,12 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
-const redisClient = require('./config/redis');
+const {redis,webServer} = require('./config/config');
 const socketHandler = require('./socket/socketHandler');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const {RedisClient, RedisClusterClient} = require('./redis/index');
 const config = require('./config/socket.config'); // Import configuration
 require('dotenv').config();
 
@@ -19,10 +20,10 @@ const io = new Server(server, {
     cors: {
         origin: "*", // Allow CORS for testing, can limit to specific domains
     },
-    transports: config.OPTIONS.transports, // Use transports from config
-    pingInterval: config.OPTIONS.pingInterval, // Ping interval from config
-    pingTimeout: config.OPTIONS.pingTimeout,   // Ping timeout from config
-    upgradeTimeout: config.OPTIONS.upgradeTimeout, // Upgrade timeout from config
+    transports: webServer.transports,
+    pingInterval: webServer.pingInterval,
+    pingTimeout: webServer.pingTimeout,
+    upgradeTimeout: webServer.upgradeTimeout,
 });
 
 // Middleware
@@ -37,6 +38,18 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/messages', messageRoutes);
+
+//either connect to redisClient or redisCluster 
+let redisClient='';
+if(redis.useCluster){
+ redisClient = new RedisClient(redis.client);
+}else{
+ redisClient = new RedisClusterClient(redis.cluster);
+}
+(async () => {
+  await redisClient.connect();
+  console.log('Redis client is connected');
+})();
 
 // Initialize Socket.io connection with proper configuration
 io.on('connection', (socket) => {
@@ -58,7 +71,7 @@ io.on('connection', (socket) => {
 
 
 // Start Server
-const PORT = process.env.PORT || 3000;
+const PORT = webServer.port||process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

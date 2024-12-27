@@ -1,6 +1,5 @@
 // file: socketHandlers.js
-const { getUserSocketId, handleSocketIdUpdate } = require('../utils/socketUtils');
-const { buildRoomName } = require('../utils/utils'); // Now in a separate file
+const { getUserSocketId, handleSocketIdUpdate ,buildRoomName} = require('../utils/socketUtils');
 const Message = require('../models/message');
 const User = require('../models/user');
 const Contact = require('../models/contact');

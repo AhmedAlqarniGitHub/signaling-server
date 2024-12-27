@@ -1,6 +1,5 @@
 'use strict';
 
-const config = require('../config/redis.config');
 const Logger = require('../utils/logger');
 const Redis = require('./redis'); // base class
 
@@ -15,9 +14,9 @@ class RedisClient extends Redis {
   /**
    * @param {number} db  optional DB index, defaults to 0
    */
-  constructor(db = 0) {
+  constructor(config,db = 0) {
     logger.debug('Redis Client: single instance constructor');
-    super(config.client, db);
+    super(config, db);
   }
 }
 

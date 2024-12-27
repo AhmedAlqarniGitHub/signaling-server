@@ -1,5 +1,5 @@
 const Message = require('../models/message');
-const redisClient = require('../config/redis');
+const redisClient = require('../config/redis.config.js');
 const logger = require('../utils/logger');
 
 // WebSocket handler for sending and caching messages
