@@ -42,9 +42,11 @@ app.use('/api/messages', messageRoutes);
 //either connect to redisClient or redisCluster 
 let redisClient='';
 if(redis.useCluster){
- redisClient = new RedisClient(redis.client);
+    redisClient = new RedisClusterClient(redis.cluster);
+
 }else{
- redisClient = new RedisClusterClient(redis.cluster);
+    redisClient = new RedisClient(redis.client);
+
 }
 (async () => {
   await redisClient.connect();
