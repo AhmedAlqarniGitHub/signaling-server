@@ -1,5 +1,4 @@
 'use strict';
-
 const Logger = require('../utils/logger');
 const Redis = require('./redis'); // base class
 

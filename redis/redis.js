@@ -1,5 +1,4 @@
 'use strict';
-
 const Logger = require('../utils/logger');
 const { createClient, createCluster } = require('redis');
 

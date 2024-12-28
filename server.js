@@ -44,6 +44,8 @@ let redisClient='';
 if(redis.useCluster){
     redisClient = new RedisClusterClient(redis.cluster);
 
+    redisClient = new RedisClusterClient(redis.cluster);
+
 }else{
     redisClient = new RedisClient(redis.client);
 
