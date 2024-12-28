@@ -1,20 +1,21 @@
 // file: socketHandlers.js
-const { getUserSocketId, handleSocketIdUpdate ,buildRoomName} = require('../utils/socketUtils');
+
+const { getUserSocketId, handleSocketIdUpdate, buildRoomName } = require('../utils/socketUtils');
 const Message = require('../models/message');
 const User = require('../models/user');
 const Contact = require('../models/contact');
 
 /**
- * Example structure for storing the user in Redis (stringified):
- * 
+ * Example structure in Redis for each user (stringified JSON):
+ *
  * {
  *   "username": "alice",
  *   "status": "available", // user-level status
  *   "agents": {
  *     "Mozilla/5.0": {
  *       "ip": "127.0.0.1",
- *       "status": "available", // agent-level status
- *       "sessionStartTime": "2024-08-21T10:00:00Z",
+ *       "status": "busy",        // agent-level status
+ *       "sessionStartTime": "...",
  *       "isInMeeting": false
  *     },
  *     "UnknownAgent": {...}
@@ -28,13 +29,16 @@ module.exports = (socket, io, redisClient) => {
     return; // Prevent setting up the socket events if the client is not connected
   }
 
-  // Update socketId in Redis (optional legacy logic)
+  // (Optional) Legacy socketId logic
   socket.on('socketId-update', async (data) => {
     const { userId, socketId } = data;
     await handleSocketIdUpdate(redisClient, userId, socketId);
   });
 
-  // Handle basic status updates if you still need it (optional)
+  /**
+   * (Optional) This can still be used for a "global" status,
+   * but you might rely more on agent-level status updates below.
+   */
   socket.on('status-update', async (data) => {
     const { userId, status } = data;
     try {
@@ -46,12 +50,59 @@ module.exports = (socket, io, redisClient) => {
   });
 
   // ======================================
+  //        AGENT-STATUS-UPDATE EVENT
+  // ======================================
+  /**
+   * If you want each agent to have separate statuses like "busy", "away",
+   * you can use a new event like this. The client would send:
+   * {
+   *   username: 'alice',
+   *   agent: 'Mozilla/5.0',
+   *   status: 'busy'
+   * }
+   */
+  socket.on('agent-status-update', async (data) => {
+    const { username, agent = 'UnknownAgent', status = 'available' } = data;
+    try {
+      const userStr = await redisClient.hGet('onlineUsers', username);
+      if (!userStr) {
+        console.log(`[agent-status-update] No user record found in Redis for username="${username}".`);
+        return;
+      }
+
+      const userObj = JSON.parse(userStr);
+
+      // Update global (user-level) status if you wish. This is optional.
+      // Or you can keep userObj.status untouched if you want them separate.
+      userObj.status = status;
+
+      // Update the specific agent-level status if agent exists
+      if (userObj.agents && userObj.agents[agent]) {
+        userObj.agents[agent].status = status;
+      }
+
+      // Save updated object in Redis
+      await redisClient.hSet('onlineUsers', username, JSON.stringify(userObj));
+
+      // Notify others if needed (or only the user themselves)
+      io.to(buildRoomName(username, agent)).emit('status-changed', {
+        username,
+        agent,
+        status
+      });
+
+      console.log(`[agent-status-update] Updated agent="${agent}" status to "${status}" for user="${username}".`);
+    } catch (error) {
+      console.error(`Error in agent-status-update event: ${error}`);
+    }
+  });
+
+  // ======================================
   //        USER-ONLINE EVENT
   // ======================================
   socket.on('user-online', async (data) => {
     try {
-      // Data could include: { username, status }
-      // For example: { username: 'alice', status: 'busy' }
+      // Example data: { username: 'alice', status: 'busy' }
       const { username, status = 'available' } = data;
 
       // Gather agent/IP info
@@ -65,38 +116,32 @@ module.exports = (socket, io, redisClient) => {
 
       let userObject;
       if (existingUserStr) {
-        // Parse the existing user object
         userObject = JSON.parse(existingUserStr);
 
-        // Update global user-level status only if needed
+        // Update global user-level status only if provided
         userObject.status = status || userObject.status || 'available';
 
-        // Initialize agents map if missing
         if (!userObject.agents) {
           userObject.agents = {};
         }
       } else {
-        // Create a brand new user object
         userObject = {
           username,
-          status,      // user-level status
+          status, // user-level status
           agents: {}
         };
       }
 
       // 2) Update or add the specific agent info
-      // If an agent object exists, we update it; otherwise we create it.
       userObject.agents[agent] = {
         ip: ipAddress,
-        status,            // agent-level status = same as user-level for now
+        status, // agent-level status
         sessionStartTime,
-        isInMeeting: false // default isInMeeting
+        isInMeeting: false
       };
 
       // 3) Determine the room name
-      // If agent is "UnknownAgent" or empty, just use the username
-      // else use buildRoomName(username, agent)
-      let roomName = username;
+      let roomName = username; // default if agent is UnknownAgent
       if (agent !== 'UnknownAgent') {
         roomName = buildRoomName(username, agent);
       }
@@ -110,15 +155,18 @@ module.exports = (socket, io, redisClient) => {
       console.log(`[user-online] ${username} joined room: ${roomName}`);
       console.log(`[user-online] Updated user object stored in Redis:`, userObject);
 
-      // 6) Deliver undelivered messages from MongoDB
+      // 6) Deliver any undelivered messages from MongoDB specifically for this agent
       const offlineMessages = await Message.find({
         recipientId: username,
+        recipientAgent: agent, // Only deliver messages meant for this agent
         delivered: false
       });
 
       for (const msg of offlineMessages) {
-        // We could emit to this socket specifically
+        // Deliver to this socket/room specifically
         socket.emit('receive-message', msg);
+
+        // Mark as delivered
         msg.delivered = true;
         await msg.save();
       }
@@ -131,7 +179,16 @@ module.exports = (socket, io, redisClient) => {
   //        SEND-MESSAGE EVENT
   // ======================================
   socket.on('send-message', async (data) => {
-    const { senderId, recipientId, content } = data;
+    /**
+     * Expect data to include:
+     * {
+     *   senderId: "mongoUserIdString",
+     *   recipientId: "mongoUserIdString",
+     *   recipientAgent: "Mozilla/5.0" (or "UnknownAgent" or "some-other-agent"),
+     *   content: "Hello!"
+     * }
+     */
+    const { senderId, recipientId, recipientAgent = 'UnknownAgent', content } = data;
 
     try {
       // 1) Check if recipient is an accepted contact
@@ -142,65 +199,63 @@ module.exports = (socket, io, redisClient) => {
       });
 
       if (!contact) {
-        console.log(`Message not delivered: User ${recipientId} is not an accepted contact for user ${senderId}`);
+        console.log(
+          `Message not delivered: User ${recipientId} is not an accepted contact for user ${senderId}`
+        );
         return;
       }
 
       // 2) Look up the recipient in Redis
-      const recipientStr = await redisClient.hGet('onlineUsers', recipientId);
+      const recipientUser = await User.findById(recipientId).lean();
+      if (!recipientUser) {
+        console.log(`[send-message] Invalid recipientId: ${recipientId}`);
+        return;
+      }
+      const recipientUsername = recipientUser.username;
+      const recipientStr = await redisClient.hGet('onlineUsers', recipientUsername);
 
-      if (recipientStr) {
-        // => user might be online
-        const recipientObj = JSON.parse(recipientStr);
-
-        // For each agent this user has, we check whether
-        // there's a corresponding room that is occupied.
-        // If at least one agent is active, we can deliver the message to that room.
-
-        let delivered = false;
-
-        // If the user has no agents, they might be offline
-        const agentKeys = Object.keys(recipientObj.agents || {});
-
-        for (const agentKey of agentKeys) {
-          // If the agentKey is "UnknownAgent", the room is username
-          let roomName = recipientId;
-          if (agentKey !== 'UnknownAgent') {
-            roomName = buildRoomName(recipientId, agentKey);
-          }
-
-          // Check if the room is currently occupied
-          const roomSet = io.sockets.adapter.rooms.get(roomName);
-
-          if (roomSet && roomSet.size > 0) {
-            // The user is online in that room => deliver the message
-            io.to(roomName).emit('receive-message', { senderId, content });
-            console.log(`[send-message] Delivered message to user=${recipientId} in room=${roomName}`);
-            delivered = true;
-          }
-        }
-
-        if (!delivered) {
-          // The user wasn't actually in any rooms => offline
-          const message = new Message({
-            senderId,
-            recipientId,
-            content,
-            delivered: false
-          });
-          await message.save();
-          console.log(`[send-message] User ${recipientId} found in Redis but no active rooms => message saved`);
-        }
-      } else {
-        // The user is offline => store message in MongoDB
+      // Helper function to store message in Mongo as undelivered
+      const storeOfflineMessage = async () => {
         const message = new Message({
           senderId,
           recipientId,
           content,
+          recipientAgent,
           delivered: false
         });
         await message.save();
-        console.log(`[send-message] User ${recipientId} offline => message saved in MongoDB`);
+        console.log(`[send-message] Stored offline message for user ${recipientUsername} (agent=${recipientAgent})`);
+      };
+
+      if (recipientStr) {
+        // => user is known in Redis
+        const recipientObj = JSON.parse(recipientStr);
+
+        // Build the correct room name
+        let roomName = recipientUsername;
+        if (recipientAgent !== 'UnknownAgent') {
+          roomName = buildRoomName(recipientUsername, recipientAgent);
+        }
+
+        // Check if the recipient is actually in that room right now
+        const roomSet = io.sockets.adapter.rooms.get(roomName);
+
+        if (roomSet && roomSet.size > 0) {
+          // The user is online in that specific agent => deliver the message
+          io.to(roomName).emit('receive-message', {
+            senderId,
+            recipientId,
+            content,
+            recipientAgent
+          });
+          console.log(`[send-message] Delivered message to user="${recipientUsername}" in room="${roomName}"`);
+        } else {
+          // The user is offline specifically on this agent => store offline
+          await storeOfflineMessage();
+        }
+      } else {
+        // The user is completely offline => store message in Mongo
+        await storeOfflineMessage();
       }
     } catch (error) {
       console.error(`Error handling send-message event: ${error}`);
@@ -210,7 +265,6 @@ module.exports = (socket, io, redisClient) => {
   // ======================================
   //        USER-OFFLINE EVENT
   // ======================================
-  // This event is optional. Alternatively, you can handle it in "disconnect".
   socket.on('user-offline', async ({ username }) => {
     try {
       // 1) Retrieve the user object from Redis
@@ -223,8 +277,6 @@ module.exports = (socket, io, redisClient) => {
       const userObj = JSON.parse(userStr);
 
       // 2) Determine the agent from the connected socket
-      //    If we have a single agent scenario, we remove the user from Redis.
-      //    If multi-agent, we remove only that agent's record.
       const rawAgent = socket.request.headers['user-agent'] || '';
       const agent = rawAgent.trim() ? rawAgent : 'UnknownAgent';
 
@@ -234,7 +286,7 @@ module.exports = (socket, io, redisClient) => {
         console.log(`[user-offline] Removed agent="${agent}" from user=${username}`);
       }
 
-      // If there are no agents left, remove the user from Redis altogether
+      // If no agents left, remove the user from Redis => user is now offline
       if (!userObj.agents || Object.keys(userObj.agents).length === 0) {
         await redisClient.hDel('onlineUsers', username);
         console.log(`[user-offline] User ${username} has no agents => removed from Redis completely`);

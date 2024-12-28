@@ -1,0 +1,58 @@
+### Signup Test Case
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+    "username": "john_doe",
+    "email": "john.doe@example.com",
+    "password": "password123",
+    "phone": "1234567890",
+    "country": "USA",
+    "phoneExtension": "+1",
+    "picture": "profile.jpg",
+    "department": "Engineering",
+    "city": "New York",
+    "company": "Tech Corp",
+    "descruption": "A new user",
+    "firstName": "John",
+    "lastName": "Doe"
+}
+
+### Login Test Case
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "john.doe@example.com",
+    "password": "password123"
+}
+
+### Add Contact Test Case
+POST http://localhost:3000/api/contacts/add
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+
+{
+    "username": "john_doe",
+    "friendUsername": "jane_doe"
+}
+
+### Remove Contact Test Case
+POST http://localhost:3000/api/contacts/remove
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+
+{
+    "username": "john_doe",
+    "friendUsername": "jane_doe"
+}
+
+### Accept Contact Test Case
+POST http://localhost:3000/api/contacts/accept
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+
+{
+    "username": "jane_doe",
+    "friendUsername": "john_doe"
+}
