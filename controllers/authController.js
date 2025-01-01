@@ -1,6 +1,10 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Password = require('../utils/password');
+
+
+const manager = new Password();
 
 exports.signup = async (req, res) => {
     const {
@@ -18,12 +22,15 @@ exports.signup = async (req, res) => {
         firstName,
         lastName
     } = req.body;
-
+    let encPass="";
+    if (password) {
+        encPass = await manager.hashPassword(password);
+    }
     try {
         const user = new User({
             username,
             email,
-            password,
+            password:encPass,
             phone,
             country,
             phoneExtension,
@@ -44,9 +51,9 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ username });
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
         const isMatch = await bcrypt.compare(password, user.password);
