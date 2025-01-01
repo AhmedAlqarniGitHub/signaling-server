@@ -13,7 +13,7 @@ Content-Type: application/json
     "department": "Engineering",
     "city": "New York",
     "company": "Tech Corp",
-    "descruption": "A new user",
+    "description": "A new user",
     "firstName": "John",
     "lastName": "Doe"
 }
@@ -43,7 +43,7 @@ Content-Type: application/json
     "department": "Engineering",
     "city": "New York",
     "company": "Tech Corp",
-    "descruption": "A new user",
+    "description": "A new user",
     "firstName": "John",
     "lastName": "Doe"
 }
@@ -73,7 +73,7 @@ Content-Type: application/json
     "department": "Engineering",
     "city": "New York",
     "company": "Tech Corp",
-    "descruption": "A new user",
+    "description": "A new user",
     "firstName": "John",
     "lastName": "Doe"
 }

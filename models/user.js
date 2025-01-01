@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   department: { type: String },
   city: { type: String },
   company: { type: String },
-  descruption: { type: String, maxlength: 1000 },
+  description: { type: String, maxlength: 1000 },
   firstName: { type: String },
   lastName: { type: String },
   socketId: { type: String, default: null },

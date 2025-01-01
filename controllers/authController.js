@@ -20,7 +20,7 @@ exports.signup = async (req, res) => {
         department,
         city,
         company,
-        descruption,
+        description,
         firstName,
         lastName
     } = req.body;
@@ -40,7 +40,7 @@ exports.signup = async (req, res) => {
             department,
             city,
             company,
-            descruption,
+            description,
             firstName,
             lastName
         });

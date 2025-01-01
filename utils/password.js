@@ -56,7 +56,7 @@ class Password {
    * @param {number} [size=16] - Number of bytes
    * @returns {string} - Hex-encoded salt
    */
-  generateSalt(size = 16) {
+  async generateSalt(size = 16) {
     return crypto.randomBytes(size).toString('hex');
   }
 
@@ -133,7 +133,7 @@ class Password {
    * @param {boolean} [options.includeSymbols=true]
    * @returns {string} - Randomly generated password
    */
-  generateRandomPassword(length = 12, options = {}) {
+  async generateRandomPassword(length = 12, options = {}) {
     const {
       includeUppercase = true,
       includeLowercase = true,
@@ -165,7 +165,7 @@ class Password {
    * @param {string} b
    * @returns {boolean}
    */
-  timingSafeCompare(a, b) {
+  async timingSafeCompare(a, b) {
     if (a.length !== b.length) return false;
     let diff = 0;
     for (let i = 0; i < a.length; i++) {
