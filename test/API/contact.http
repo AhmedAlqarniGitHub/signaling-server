@@ -5,8 +5,8 @@ Content-Type: application/json
 Authorization: Bearer <JWT_TOKEN>
 
 {
-    "username": "john_doe",
-    "friendUsername": "jane_doe"
+    "username": "ahmed",
+    "friendUsername": "dhmi"
 }
 
 ### Remove Contact Test Case
@@ -15,8 +15,8 @@ Content-Type: application/json
 Authorization: Bearer <JWT_TOKEN>
 
 {
-    "username": "john_doe",
-    "friendUsername": "jane_doe"
+    "username": "ahmed",
+    "friendUsername": "dhmi"
 }
 
 ### Accept Contact Test Case
@@ -25,6 +25,37 @@ Content-Type: application/json
 Authorization: Bearer <JWT_TOKEN>
 
 {
-    "username": "jane_doe",
-    "friendUsername": "john_doe"
+    "username": "dhmi",
+    "friendUsername": "ahmed"
+}
+
+
+### Add Contact Test Case
+POST http://localhost:3000/api/contacts/add
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+
+{
+    "username": "ahmed",
+    "friendUsername": "wld"
+}
+
+### Remove Contact Test Case
+POST http://localhost:3000/api/contacts/remove
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+
+{
+    "username": "ahmed",
+    "friendUsername": "wld"
+}
+
+### Accept Contact Test Case
+POST http://localhost:3000/api/contacts/accept
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+
+{
+    "username": "wld",
+    "friendUsername": "ahmed"
 }

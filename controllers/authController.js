@@ -2,7 +2,9 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Password = require('../utils/password');
+const Logger = require("../utils/logger");
 
+const logger= new Logger("authController");
 
 const manager = new Password();
 
