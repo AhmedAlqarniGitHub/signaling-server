@@ -22,7 +22,7 @@ await redisCluster.connect();
 
 // Then use the methods
 await redis.setKey('hello', 'world');
-console.log(await redis.getKey('hello')); // "world"
+logger.log(await redis.getKey('hello')); // "world"
 
 
 

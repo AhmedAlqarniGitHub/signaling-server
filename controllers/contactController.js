@@ -59,7 +59,7 @@ exports.addContact = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error adding contact:', error);
+        logger.error('Error adding contact:', error);
         res.status(500).json({ error: 'Error adding contact.' });
     }
 };
@@ -101,7 +101,7 @@ exports.removeContact = async (req, res) => {
 
         res.status(200).json({ message: 'Contact removed successfully.' });
     } catch (error) {
-        console.error('Error removing contact:', error);
+        logger.error('Error removing contact:', error);
         res.status(500).json({ error: 'Error removing contact.' });
     }
 };
@@ -154,7 +154,7 @@ exports.acceptContact = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error accepting contact:', error);
+        logger.error('Error accepting contact:', error);
         res.status(500).json({ error: 'Error accepting contact request.' });
     }
 };

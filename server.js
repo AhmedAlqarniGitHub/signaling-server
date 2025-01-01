@@ -62,12 +62,13 @@ io.on('connection', (socket) => {
     logger.info(`User connected: ${socket.id}`);
 
     // Use your socket handler only if Redis client is connected
-    if (redisClient.isOpen) {
+  //  if (redisClient.isOpen) {
         socketHandler(socket, io, redisClient);
-    } else {
-        logger.error('Redis client is not connected when user connected');
-        socket.emit('response', { success: false, error: 'Redis client is not connected' });
-    }
+    // } else {
+    //     logger.error('Redis client is not connected when user connected');
+    //     socket.emit('response', { success: false, error: 'Redis client is not connected' });
+    // }
+    // console.log("🚀 ~ io.on ~ redisClient.isOpen:", redisClient.isOpen)
 
     // Handle socket disconnection
     socket.on('disconnect', (reason) => {

@@ -51,7 +51,7 @@ const handleSocketIdUpdate = async (redisClient, userId, socketId) => {
     try {
         await redisClient.set(`socketId:${userId}`, socketId);
         await User.findByIdAndUpdate(userId, { socketId }); // Optional: Can be skipped
-        console.log(`Socket ID ${socketId} associated with user ${userId} in Redis/db`);
+        logger.log(`Socket ID ${socketId} associated with user ${userId} in Redis/db`);
     } catch (error) {
         console.error(`Error updating socket ID for user ${userId}: ${error}`);
     }

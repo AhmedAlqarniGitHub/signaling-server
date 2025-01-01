@@ -1,6 +1,9 @@
 // file: client.js
 const io = require('socket.io-client');
 const readline = require('readline');
+const Logger = require('../utils/logger');
+
+const logger = new Logger("client");
 
 // Replace with your actual server URL
 const SOCKET_URL = 'http://localhost:3000'; // wss:// if using TLS
@@ -30,23 +33,26 @@ function connectToServer(_username, _agent) {
   });
 
   socket.on('connect', () => {
-    console.log(`Connected to server with socket ID: ${socket.id}`);
+    logger.info(`Connected to server with socket ID: ${socket.id}`);
+
 
     // Let the server know we're online with a specific agent + status
     // Defaulting status to "available" here; you can prompt for it too
     socket.emit('user-online', { username, status: 'available' });
 
-    console.log(`User "${username}" with agent="${agent}" is now online.`);
+    logger.info(`User "${username}" with agent="${agent}" is now online.`);
   });
 
   socket.on('disconnect', () => {
-    console.log('Disconnected from server.');
+    logger.info('Disconnected from server.');
   });
 
   // Listen for incoming messages
   socket.on('receive-message', (message) => {
+    console.log("🚀 ~ socket.on ~ message:", message)
+    
     // message contains { senderId, recipientId, content, recipientAgent, ... }
-    console.log(`\n[MSG] From=${message.senderId} | Content="${message.content}" | Agent="${message.recipientAgent}"\n`);
+    logger.info(`\n[MSG] From=${message.senderId} | Content="${message.content}" | Agent="${message.recipientAgent}"\n`);
     promptUser(); // re-show prompt after message
   });
 
@@ -54,20 +60,20 @@ function connectToServer(_username, _agent) {
   socket.on('status-changed', (data) => {
     // data might have { username, agent, status } or { userId, status }
     if (data.agent) {
-      console.log(`\n[STATUS] ${data.username}'s agent="${data.agent}" is now "${data.status}"\n`);
+      logger.info(`\n[STATUS] ${data.username}'s agent="${data.agent}" is now "${data.status}"\n`);
     } else {
-      console.log(`\n[STATUS] ${data.userId || data.username} is now "${data.status}"\n`);
+      logger.info(`\n[STATUS] ${data.userId || data.username} is now "${data.status}"\n`);
     }
     promptUser();
   });
 
   // Handle connection error
   socket.on('connect_error', (error) => {
-    console.error(`Connection Error: ${error.message}`);
+    logger.error(`Connection Error: ${error.message}`);
   });
 
   socket.on('error', (error) => {
-    console.error(`Socket Error: ${error.message}`);
+    logger.error(`Socket Error: ${error.message}`);
   });
 }
 
@@ -76,7 +82,7 @@ function connectToServer(_username, _agent) {
 // ---------------------------------
 function sendMessage() {
   if (!socket || !socket.connected) {
-    console.error('Socket is not connected. Unable to send message.');
+    logger.error('Socket is not connected. Unable to send message.');
     promptUser();
     return;
   }
@@ -96,7 +102,7 @@ function sendMessage() {
           content,
         });
 
-        console.log(`\nSent message from "${username}" to "${recipientUsername}-${recipientAgent}" -> ${content}\n`);
+        logger.info(`\nSent message from "${username}" to "${recipientUsername}-${recipientAgent}" -> ${content}\n`);
         promptUser();
       });
     });
@@ -108,7 +114,7 @@ function sendMessage() {
 // ---------------------------------
 function changeAgentStatus() {
   if (!socket || !socket.connected) {
-    console.error('Socket is not connected. Unable to update status.');
+    logger.error('Socket is not connected. Unable to update status.');
     promptUser();
     return;
   }
@@ -120,7 +126,7 @@ function changeAgentStatus() {
         agent: targetAgent,
         status: newStatus,
       });
-      console.log(`\nAgent-status-update: user="${username}" agent="${targetAgent}" => status="${newStatus}"\n`);
+      logger.info(`\nAgent-status-update: user="${username}" agent="${targetAgent}" => status="${newStatus}"\n`);
       promptUser();
     });
   });
@@ -131,14 +137,14 @@ function changeAgentStatus() {
 // ---------------------------------
 function userOnlineAgain() {
   if (!socket || !socket.connected) {
-    console.error('Socket is not connected. Unable to go online.');
+    logger.error('Socket is not connected. Unable to go online.');
     promptUser();
     return;
   }
 
   // Re-emit user-online to the server if you want to fetch offline messages again
   socket.emit('user-online', { username, status: 'available' });
-  console.log(`\nUser "${username}" rejoined => offline messages (if any) will be delivered.\n`);
+  logger.info(`\nUser "${username}" rejoined => offline messages (if any) will be delivered.\n`);
   promptUser();
 }
 
@@ -178,7 +184,7 @@ function promptUser() {
           break;
 
         case '5':
-          console.log('Exiting...');
+          logger.info('Exiting...');
           if (socket) {
             socket.close();
           }
@@ -186,7 +192,7 @@ function promptUser() {
           break;
 
         default:
-          console.log('Invalid option.');
+          logger.info('Invalid option.');
           promptUser();
           break;
       }
