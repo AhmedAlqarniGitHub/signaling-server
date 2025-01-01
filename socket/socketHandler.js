@@ -4,7 +4,9 @@ const { getUserSocketId, handleSocketIdUpdate, buildRoomName } = require('../uti
 const Message = require('../models/message');
 const User = require('../models/user');
 const Contact = require('../models/contact');
+const Logger = require('../utils/logger');
 
+const logger = new Logger("socketHandlers");
 /**
  * Example structure in Redis for each user (stringified JSON):
  *
@@ -25,7 +27,7 @@ const Contact = require('../models/contact');
 
 module.exports = (socket, io, redisClient) => {
   if (!redisClient.isOpen) {
-    console.error('Redis client is not connected when setting up socket handler');
+    logger.error('Redis client is not connected when setting up socket handler');
     return; // Prevent setting up the socket events if the client is not connected
   }
 
@@ -45,7 +47,7 @@ module.exports = (socket, io, redisClient) => {
       await redisClient.set(`status:${userId}`, status);
       io.emit('status-changed', { userId, status });
     } catch (error) {
-      console.error(`Error updating status in Redis: ${error}`);
+      logger.error(`Error updating status in Redis: ${error}`);
     }
   });
 
@@ -66,7 +68,7 @@ module.exports = (socket, io, redisClient) => {
     try {
       const userStr = await redisClient.hGet('onlineUsers', username);
       if (!userStr) {
-        console.log(`[agent-status-update] No user record found in Redis for username="${username}".`);
+        logger.info(`[agent-status-update] No user record found in Redis for username="${username}".`);
         return;
       }
 
@@ -91,9 +93,9 @@ module.exports = (socket, io, redisClient) => {
         status
       });
 
-      console.log(`[agent-status-update] Updated agent="${agent}" status to "${status}" for user="${username}".`);
+      logger.info(`[agent-status-update] Updated agent="${agent}" status to "${status}" for user="${username}".`);
     } catch (error) {
-      console.error(`Error in agent-status-update event: ${error}`);
+      logger.error(`Error in agent-status-update event: ${error}`);
     }
   });
 
@@ -152,8 +154,8 @@ module.exports = (socket, io, redisClient) => {
       // 5) Save updated user object to Redis
       await redisClient.hSet('onlineUsers', username, JSON.stringify(userObject));
 
-      console.log(`[user-online] ${username} joined room: ${roomName}`);
-      console.log(`[user-online] Updated user object stored in Redis:`, userObject);
+      logger.info(`[user-online] ${username} joined room: ${roomName}`);
+      logger.info(`[user-online] Updated user object stored in Redis:`, userObject);
 
       // 6) Deliver any undelivered messages from MongoDB specifically for this agent
       const offlineMessages = await Message.find({
@@ -171,7 +173,7 @@ module.exports = (socket, io, redisClient) => {
         await msg.save();
       }
     } catch (error) {
-      console.error(`Error in user-online event: ${error}`);
+      logger.error(`Error in user-online event: ${error}`);
     }
   });
 
@@ -199,7 +201,7 @@ module.exports = (socket, io, redisClient) => {
       });
 
       if (!contact) {
-        console.log(
+        logger.info(
           `Message not delivered: User ${recipientId} is not an accepted contact for user ${senderId}`
         );
         return;
@@ -208,7 +210,7 @@ module.exports = (socket, io, redisClient) => {
       // 2) Look up the recipient in Redis
       const recipientUser = await User.findById(recipientId).lean();
       if (!recipientUser) {
-        console.log(`[send-message] Invalid recipientId: ${recipientId}`);
+        logger.info(`[send-message] Invalid recipientId: ${recipientId}`);
         return;
       }
       const recipientUsername = recipientUser.username;
@@ -224,7 +226,7 @@ module.exports = (socket, io, redisClient) => {
           delivered: false
         });
         await message.save();
-        console.log(`[send-message] Stored offline message for user ${recipientUsername} (agent=${recipientAgent})`);
+        logger.info(`[send-message] Stored offline message for user ${recipientUsername} (agent=${recipientAgent})`);
       };
 
       if (recipientStr) {
@@ -248,7 +250,7 @@ module.exports = (socket, io, redisClient) => {
             content,
             recipientAgent
           });
-          console.log(`[send-message] Delivered message to user="${recipientUsername}" in room="${roomName}"`);
+          logger.info(`[send-message] Delivered message to user="${recipientUsername}" in room="${roomName}"`);
         } else {
           // The user is offline specifically on this agent => store offline
           await storeOfflineMessage();
@@ -258,7 +260,7 @@ module.exports = (socket, io, redisClient) => {
         await storeOfflineMessage();
       }
     } catch (error) {
-      console.error(`Error handling send-message event: ${error}`);
+      logger.error(`Error handling send-message event: ${error}`);
     }
   });
 
@@ -270,7 +272,7 @@ module.exports = (socket, io, redisClient) => {
       // 1) Retrieve the user object from Redis
       const userStr = await redisClient.hGet('onlineUsers', username);
       if (!userStr) {
-        console.log(`[user-offline] No record found in Redis for user=${username}`);
+        logger.info(`[user-offline] No record found in Redis for user=${username}`);
         return;
       }
 
@@ -283,17 +285,17 @@ module.exports = (socket, io, redisClient) => {
       // Remove the agent from the object
       if (userObj.agents && userObj.agents[agent]) {
         delete userObj.agents[agent];
-        console.log(`[user-offline] Removed agent="${agent}" from user=${username}`);
+        logger.info(`[user-offline] Removed agent="${agent}" from user=${username}`);
       }
 
       // If no agents left, remove the user from Redis => user is now offline
       if (!userObj.agents || Object.keys(userObj.agents).length === 0) {
         await redisClient.hDel('onlineUsers', username);
-        console.log(`[user-offline] User ${username} has no agents => removed from Redis completely`);
+        logger.info(`[user-offline] User ${username} has no agents => removed from Redis completely`);
       } else {
         // Otherwise, update the user object in Redis
         await redisClient.hSet('onlineUsers', username, JSON.stringify(userObj));
-        console.log(`[user-offline] Updated user object in Redis after removing agent="${agent}"`);
+        logger.info(`[user-offline] Updated user object in Redis after removing agent="${agent}"`);
       }
 
       // 3) Also leave the room
@@ -303,9 +305,9 @@ module.exports = (socket, io, redisClient) => {
       }
       socket.leave(roomName);
 
-      console.log(`[user-offline] ${username} has left room=${roomName}`);
+      logger.info(`[user-offline] ${username} has left room=${roomName}`);
     } catch (error) {
-      console.error(`Error setting user ${username} offline: ${error}`);
+      logger.error(`Error setting user ${username} offline: ${error}`);
     }
   });
 };

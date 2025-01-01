@@ -9,7 +9,10 @@ const contactRoutes = require('./routes/contactRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const {RedisClient, RedisClusterClient} = require('./redis/index');
 const config = require('./config/socket.config'); // Import configuration
+const Logger = require('./utils/logger');
+
 require('dotenv').config();
+const logger = new Logger("server");
 
 // Initialize Express
 const app = express();
@@ -31,8 +34,8 @@ app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.log('MongoDB connection error:', err));
+    .then(() => logger.info('MongoDB connected'))
+    .catch((err) => logger.info('MongoDB connection error:', err));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -51,24 +54,24 @@ if(redis.useCluster){
 }
 (async () => {
   await redisClient.connect();
-  console.log('Redis client is connected');
+  logger.info('Redis client is connected');
 })();
 
 // Initialize Socket.io connection with proper configuration
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    logger.info(`User connected: ${socket.id}`);
 
     // Use your socket handler only if Redis client is connected
     if (redisClient.isOpen) {
         socketHandler(socket, io, redisClient);
     } else {
-        console.error('Redis client is not connected when user connected');
+        logger.error('Redis client is not connected when user connected');
         socket.emit('response', { success: false, error: 'Redis client is not connected' });
     }
 
     // Handle socket disconnection
     socket.on('disconnect', (reason) => {
-        console.log(`User disconnected: ${socket.id}. Reason: ${reason}`);
+        logger.info(`User disconnected: ${socket.id}. Reason: ${reason}`);
     });
 });
 
@@ -76,5 +79,5 @@ io.on('connection', (socket) => {
 // Start Server
 const PORT = webServer.port||process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    logger.info(`Server is running on port ${PORT}`);
 });

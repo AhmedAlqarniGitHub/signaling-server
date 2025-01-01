@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "DEBUG=makeen:* node server.js",
+    "dev": "DEBUG=makeen:* nodemon server.js",
     "client": "nodemon client/client.js",
     "test": "jest"
   },

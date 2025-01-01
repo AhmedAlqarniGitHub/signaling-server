@@ -3,6 +3,36 @@ POST http://localhost:3000/api/auth/signup
 Content-Type: application/json
 
 {
+    "username": "ahmed",
+    "email": "ahmed@example.com",
+    "password": "123",
+    "phone": "1234567890",
+    "country": "USA",
+    "phoneExtension": "+1",
+    "picture": "profile.jpg",
+    "department": "Engineering",
+    "city": "New York",
+    "company": "Tech Corp",
+    "descruption": "A new user",
+    "firstName": "John",
+    "lastName": "Doe"
+}
+
+### Login Test Case
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "ahmed",
+    "password": "123"
+}
+
+
+### Signup Test Case
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
     "username": "dhmi",
     "email": "dhmi@example.com",
     "password": "123",
@@ -24,6 +54,36 @@ Content-Type: application/json
 
 {
     "username": "dhmi",
+    "password": "123"
+}
+
+
+### Signup Test Case
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+    "username": "wld",
+    "email": "wld@example.com",
+    "password": "123",
+    "phone": "1234567890",
+    "country": "USA",
+    "phoneExtension": "+1",
+    "picture": "profile.jpg",
+    "department": "Engineering",
+    "city": "New York",
+    "company": "Tech Corp",
+    "descruption": "A new user",
+    "firstName": "John",
+    "lastName": "Doe"
+}
+
+### Login Test Case
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "wld",
     "password": "123"
 }
 
