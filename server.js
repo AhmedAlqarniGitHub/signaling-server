@@ -2,12 +2,12 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
-const {redis,webServer} = require('./config/config');
-const socketHandler = require('./socket/socketHandler');
+const { redis, webServer } = require('./config/config');
+const socketHandler = require('./socket/socketHandlers');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const messageRoutes = require('./routes/messageRoutes');
-const {RedisClient, RedisClusterClient} = require('./redis/index');
+const { RedisClient, RedisClusterClient } = require('./redis/index');
 const config = require('./config/socket.config'); // Import configuration
 const Logger = require('./utils/logger');
 
@@ -43,32 +43,26 @@ app.use('/api/contacts', contactRoutes);
 app.use('/api/messages', messageRoutes);
 
 //either connect to redisClient or redisCluster 
-let redisClient='';
-if(redis.useCluster){
+let redisClient = '';
+if (redis.useCluster) {
     redisClient = new RedisClusterClient(redis.cluster);
 
 
-}else{
+} else {
     redisClient = new RedisClient(redis.client);
 
 }
 (async () => {
-  await redisClient.connect();
-  logger.info('Redis client is connected');
+    await redisClient.connect();
+    logger.info('Redis client is connected');
 })();
 
 // Initialize Socket.io connection with proper configuration
 io.on('connection', (socket) => {
     logger.info(`User connected: ${socket.id}`);
 
-    // Use your socket handler only if Redis client is connected
-  //  if (redisClient.isOpen) {
-        socketHandler(socket, io, redisClient);
-    // } else {
-    //     logger.error('Redis client is not connected when user connected');
-    //     socket.emit('response', { success: false, error: 'Redis client is not connected' });
-    // }
-    // console.log("🚀 ~ io.on ~ redisClient.isOpen:", redisClient.isOpen)
+    socketHandler(socket, io, redisClient);
+
 
     // Handle socket disconnection
     socket.on('disconnect', (reason) => {
@@ -78,7 +72,7 @@ io.on('connection', (socket) => {
 
 
 // Start Server
-const PORT = webServer.port||process.env.PORT || 3000;
+const PORT = webServer.port || process.env.PORT || 3000;
 server.listen(PORT, () => {
     logger.info(`Server is running on port ${PORT}`);
 });
