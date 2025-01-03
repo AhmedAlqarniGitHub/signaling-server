@@ -6,7 +6,7 @@ class Logger
 
 	constructor(prefix) 
 	{
-		this.APP_NAME = 'makeen';
+		this.APP_NAME = 'mkn';
 
 		if (prefix) 
 		{

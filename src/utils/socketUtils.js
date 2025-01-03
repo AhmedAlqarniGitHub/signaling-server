@@ -1,13 +1,6 @@
 const User = require('../models/user');
 const depd = require('depd')('my-module-name');
 
-function oldFunction(a, b) {
-  depd('oldFunction() is deprecated. Please use newFunction() instead.');
-  return a + b;
-}
-
-module.exports = { oldFunction };
-
 
 /**
  * Retrieve a user's socket ID.

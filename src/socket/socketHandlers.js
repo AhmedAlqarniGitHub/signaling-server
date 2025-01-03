@@ -1,19 +1,18 @@
-// file: socketHandlers.js
+// src/sockets/socketHandlers.js
 const Logger = require('../utils/logger');
-const logger = new Logger('socketHandlers');
-
 const { handlePlatformStatusUpdate } = require('./platformStatusHandlers');
 const { handleSendMessage } = require('./messageHandlers');
 
+const logger = new Logger('socket:socketHandlers');
+
 module.exports = (socket, io, redisClient) => {
-  // Listen for platform status updates and call our handler
+  // Listen for platform status
   socket.on('platform-status-update', async (data) => {
     await handlePlatformStatusUpdate(socket, io, redisClient, data);
   });
 
-  // Listen for message sends and call our handler
+  // Listen for send message
   socket.on('send-message', async (data) => {
     await handleSendMessage(socket, io, redisClient, data);
   });
-
 };

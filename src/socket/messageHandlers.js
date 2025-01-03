@@ -1,11 +1,12 @@
 // file: messageHandlers.js
 const Logger = require('../utils/logger');
-const logger = new Logger('messageHandlers');
-
 const Message = require('../models/message');
 const User = require('../models/user');
 const Contact = require('../models/contact');
 const { buildRoomName } = require('../utils/socketUtils');
+
+
+const logger = new Logger('socket:messageHandlers');
 
 /**
  * Handles the 'send-message' event.

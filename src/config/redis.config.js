@@ -1,5 +1,6 @@
 /* eslint-disable strict */
 const fs = require('fs');
+const path = require('path');
 
 module.exports = {
 	useCluster : false,
@@ -10,9 +11,9 @@ module.exports = {
 		rejectUnauthorized : false, // self-signed certificate
 		password           : '',
 		username           : '',
-		key                : fs.readFileSync('certs/server.key'),
-		cert               : fs.readFileSync('certs/server.crt'),
-		ca                 : [ fs.readFileSync('certs/server.key') ],
+		key                : fs.readFileSync(path.join(__dirname,'certs','server.key')),
+		cert               : fs.readFileSync(path.join(__dirname,'certs','server.crt')),
+		ca                 : [ fs.readFileSync(path.join(__dirname,'certs','server.key')) ],
 		// setting a 10-second timeout  
 		connectTimeout     : 10000, // in milliseconds
 		// eslint-disable-next-line camelcase
@@ -56,9 +57,9 @@ module.exports = {
 		  	rejectUnauthorized : false, // self-signed certificate
 		  	username           : '',
 		  	password           : '',
-		  	key                : fs.readFileSync('certs/server.key'),
-		  	cert               : fs.readFileSync('certs/server.crt'),
-		  	ca                 : [ fs.readFileSync('certs/server.key') ],
+		  	key                : fs.readFileSync(path.join(__dirname,'certs','server.key')),
+		  	cert               : fs.readFileSync(path.join(__dirname,'certs','server.crt')),
+		  	ca                 : [ fs.readFileSync(path.join(__dirname,'certs','server.key')) ],
 		  	// setting a 10-second timeout  
 		  	connectTimeout     : 10000, // in milliseconds
 		  	// eslint-disable-next-line camelcase

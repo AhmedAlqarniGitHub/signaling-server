@@ -2,14 +2,13 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
-const { redis, webServer } = require('./config/config');
-const socketHandler = require('./socket/socketHandlers');
-const authRoutes = require('./routes/authRoutes');
-const contactRoutes = require('./routes/contactRoutes');
-const messageRoutes = require('./routes/messageRoutes');
-const { RedisClient, RedisClusterClient } = require('./redis/index');
-const config = require('./config/socket.config'); // Import configuration
-const Logger = require('./utils/logger');
+const { redis, webServer } = require('./src/config/config');
+const initSockets = require('./src/socket/index');
+const authRoutes = require('./src/routes/authRoutes');
+const contactRoutes = require('./src/routes/contactRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
+const { RedisClient, RedisClusterClient } = require('./src/redis/index');
+const Logger = require('./src/utils/logger');
 
 require('dotenv').config();
 const logger = new Logger("server");
@@ -57,18 +56,8 @@ if (redis.useCluster) {
     logger.info('Redis client is connected');
 })();
 
-// Initialize Socket.io connection with proper configuration
-io.on('connection', (socket) => {
-    logger.info(`User connected: ${socket.id}`);
-
-    socketHandler(socket, io, redisClient);
-
-
-    // Handle socket disconnection
-    socket.on('disconnect', (reason) => {
-        logger.info(`User disconnected: ${socket.id}. Reason: ${reason}`);
-    });
-});
+// Init socket 
+initSockets(io, redisClient);  
 
 
 // Start Server

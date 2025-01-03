@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "start": "DEBUG=makeen:* node server.js",
-    "dev": "DEBUG=makeen:* nodemon server.js",
-    "client": "DEBUG=makeen:* nodemon client/client.js",
+    "start": "DEBUG=mkn:* node server.js",
+    "dev": "DEBUG=mkn:* nodemon server.js",
+    "client": "DEBUG=mkn:* nodemon client/client.js",
     "test": "jest",
-    "test-p":"DEBUG=makeen:* node test/utils/password.js"
+    "test-p":"DEBUG=mkn:* node test/utils/password.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

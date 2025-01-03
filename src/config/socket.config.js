@@ -5,8 +5,8 @@ module.exports = {
     PORT: 3000,
     Standalone: false,
     tls: false,
-   // key: fs.readFileSync('certs/server.key'),
-   // cert: fs.readFileSync('certs/server.crt'),
+   // key: fs.readFileSync(path.join(__dirname,'certs','server.key')),
+   // cert: fs.readFileSync(path.join(__dirname,'certs','server.crt')),
     adapter: 'redis',  // We will be using Redis for adapter
     redisAdapterDB: 2,  // Redis database for socket.io adapter
     redisUsersDB: 1,    // Redis database for user statuses and other caching

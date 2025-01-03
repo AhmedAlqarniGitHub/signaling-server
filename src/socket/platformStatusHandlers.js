@@ -2,10 +2,10 @@
 
 const Logger = require('../utils/logger');
 const { buildRoomName } = require('../utils/socketUtils');
-const logger = new Logger('platformStatusHandlers');
-
 const User = require('../models/user');
 const Message = require('../models/message');
+
+const logger = new Logger('socket:platformStatusHandlers');
 
 /**
  * Handles the 'platform-status-update' event.
@@ -13,7 +13,7 @@ const Message = require('../models/message');
  * 2) Joins them to (username-platform) room.
  * 3) Delivers any offline messages from MongoDB and DELETES them from the DB.
  */
-async function handlePlatformStatusUpdate(socket, io, redisClient, data) {
+async function handlePlatformStatusUpdate(socket, io, redisClient, data) {//FIXME: to be divided to more than one function 
     const { username, platform = 'UnknownPlatform', status = 'online', ip = '127.0.0.1' } = data;
 
     if (!username) {
