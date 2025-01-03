@@ -7,6 +7,7 @@ const initSockets = require('./src/socket/index');
 const authRoutes = require('./src/routes/authRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const messageRoutes = require('./src/routes/messageRoutes');
+const profileRoutes = require('./src/routes/profileRoutes');
 const { RedisClient, RedisClusterClient } = require('./src/redis/index');
 const Logger = require('./src/utils/logger');
 
@@ -40,6 +41,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 app.use('/api/auth', authRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/profile', profileRoutes);
 
 //either connect to redisClient or redisCluster 
 let redisClient = '';

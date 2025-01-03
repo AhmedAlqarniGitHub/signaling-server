@@ -1,0 +1,79 @@
+###
+# PROFILE ENDPOINTS
+# Base URL assumed: http://localhost:3000
+###
+
+# 1) CREATE A PHONE PROFILE FOR USER "ahmed"
+POST http://localhost:3000/api/profile/ahmed
+Content-Type: application/json
+
+{
+  "type": "phone",
+  "country": "USA",
+  "picture": "profile.jpg",
+  "department": "Engineering",
+  "city": "New York",
+  "company": "Tech Corp",
+  "description": "Phone profile for Ahmed",
+  "firstName": "Ahmed",
+  "lastName": "Smith",
+  "phoneExtension": "+1"
+}
+
+###
+# 2) CREATE A DESKTOP PROFILE FOR USER "ahmed"
+POST http://localhost:3000/api/profile/ahmed
+Content-Type: application/json
+
+{
+  "type": "desktop",
+  "country": "France",
+  "picture": "desktopPic.png",
+  "department": "IT",
+  "city": "Paris",
+  "company": "Global Tech",
+  "description": "Desktop profile for Ahmed",
+  "firstName": "Ahmed",
+  "lastName": "Smith"
+}
+
+###
+# 3) CREATE A TABLET PROFILE FOR USER "ahmed"
+POST http://localhost:3000/api/profile/ahmed
+Content-Type: application/json
+
+{
+  "type": "tablet",
+  "country": "Canada",
+  "picture": "tabletPic.png",
+  "department": "Marketing",
+  "city": "Toronto",
+  "company": "Creative Inc",
+  "description": "Tablet profile for Ahmed",
+  "firstName": "Ahmed",
+  "lastName": "Smith"
+}
+
+###
+# 4) UPDATE THE PHONE PROFILE FOR USER "ahmed"
+PUT http://localhost:3000/api/profile/ahmed
+Content-Type: application/json
+
+{
+  "type": "phone",
+  "city": "Los Angeles",
+  "phoneExtension": "+99",
+  "description": "Updated phone profile for Ahmed"
+}
+
+###
+# 5) UPDATE THE DESKTOP PROFILE FOR USER "ahmed"
+PUT http://localhost:3000/api/profile/ahmed
+Content-Type: application/json
+
+{
+  "type": "desktop",
+  "city": "Berlin",
+  "country": "Germany",
+  "description": "Updated desktop profile for Ahmed"
+}
