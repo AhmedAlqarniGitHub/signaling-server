@@ -118,6 +118,68 @@ async function handlePlatformStatusUpdate(socket, io, redisClient, data) {//FIXM
     }
 }
 
-module.exports = {
-    handlePlatformStatusUpdate
-};
+
+/**
+ * Handles updating whether a user is "inMeeting" on a specific platform.
+ * Expects payload like: { username, platform, isInMeeting: true/false }
+ */
+async function handleInMeetingUpdate(socket, io, redisClient, data) {
+    const { username, platform = 'UnknownPlatform', isInMeeting = false } = data;
+  
+    if (!username) {
+      logger.warn('[in-meeting-update] Username is missing.');
+      return;
+    }
+  
+    const redisKey = `user:${username}`;
+    try {
+      // 1) Retrieve user platform object from Redis
+      const userObjStr = await redisClient.getHash(redisKey, 'platform');
+      if (!userObjStr) {
+        // If there's no record in Redis, we can either:
+        // A) Create a new one (like handlePlatformStatusUpdate does),
+        // B) Or just log a warning and exit
+        logger.warn(`[in-meeting-update] No existing user record in Redis for username="${username}".`);
+        return;
+      }
+  
+      // 2) Parse existing user data
+      const userObj = JSON.parse(userObjStr);
+  
+      // Safety checks
+      if (!userObj.agents) {
+        userObj.agents = {};
+      }
+      if (!userObj.agents[platform]) {
+        // The user has not done a platform-status-update for this platform yet
+        logger.warn(`[in-meeting-update] No platform record for "${platform}" in user "${username}"'s agent list.`);
+        return;
+      }
+  
+      // 3) Update the 'isInMeeting' field
+      userObj.agents[platform].isInMeeting = isInMeeting;
+  
+      // 4) Save updates back to Redis
+      await redisClient.setHash(redisKey, {
+        platform: JSON.stringify(userObj),
+      });
+      logger.info(`[in-meeting-update] Updated isInMeeting="${isInMeeting}" for username="${username}", platform="${platform}".`);
+  
+      // 5) Optionally broadcast an event so others know the user’s meeting status changed
+      const roomName = buildRoomName(username, platform);
+      io.to(roomName).emit('in-meeting-updated', {
+        username,
+        platform,
+        isInMeeting,
+      });
+  
+    } catch (error) {
+      logger.error(`[in-meeting-update] Error: ${error}`);
+    }
+  }
+  
+  module.exports = {
+    handlePlatformStatusUpdate,
+    handleInMeetingUpdate
+  };
+  

@@ -1,4 +1,3 @@
-// file: client.js
 'use strict';
 
 const io = require('socket.io-client');
@@ -102,6 +101,15 @@ function connectToServer(username, platform) {
     showMainMenu();
   });
 
+  // ------------------------------------------------------------
+  //  Handle meeting updates (server might broadcast "in-meeting-updated")
+  // ------------------------------------------------------------
+  socket.on('in-meeting-updated', (data) => {
+    // data => { username, platform, isInMeeting }
+    console.log(`\n[INFO] in-meeting-updated => user="${data.username}", platform="${data.platform}", isInMeeting=${data.isInMeeting}`);
+    showMainMenu();
+  });
+
   // Handle errors
   socket.on('connect_error', (err) => {
     console.error('[ERROR] Connection error:', err.message);
@@ -112,13 +120,14 @@ function connectToServer(username, platform) {
 }
 
 // ------------------------------------------------------------
-//  STEP 3: SHOW CLI MENU (send message, change status, exit)
+//  STEP 3: SHOW CLI MENU (send message, change status, in-meeting, exit)
 // ------------------------------------------------------------
 function showMainMenu() {
   console.log('\n======== MAIN MENU ========');
   console.log('(1) Send Message');
   console.log('(2) Change My Status');
-  console.log('(3) Exit');
+  console.log('(3) Toggle My "inMeeting" Status');
+  console.log('(4) Exit');
   rl.question('Your choice: ', (choice) => {
     switch (choice.trim()) {
       case '1':
@@ -128,6 +137,9 @@ function showMainMenu() {
         changePlatformStatus();
         break;
       case '3':
+        updateInMeetingStatus();
+        break;
+      case '4':
         console.log('Exiting...');
         if (socket) socket.close();
         rl.close();
@@ -212,6 +224,52 @@ function changePlatformStatus() {
     });
     console.log(`\n[INFO] platform-status-update => user="${username}" platform="${platform}" status="${finalStatus}"`);
     showMainMenu();
+  });
+}
+
+// -------------------------------------------
+//        TOGGLE "inMeeting" FOR SELECTED PLATFORM
+// -------------------------------------------
+function updateInMeetingStatus() {
+  if (!socket || !socket.connected) {
+    console.log('[ERROR] Socket not connected.');
+    return showMainMenu();
+  }
+
+  console.log('\nSelect a platform to update in-meeting status:');
+  console.log('(1) phone');
+  console.log('(2) desktop');
+  console.log('(3) tablet');
+  rl.question('Your choice: ', (pChoice) => {
+    let targetPlatform = 'phone';
+    switch (pChoice.trim()) {
+      case '1':
+        targetPlatform = 'phone';
+        break;
+      case '2':
+        targetPlatform = 'desktop';
+        break;
+      case '3':
+        targetPlatform = 'tablet';
+        break;
+      default:
+        console.log('Invalid choice. Defaulting to "phone".');
+        targetPlatform = 'phone';
+        break;
+    }
+
+    rl.question('Are you in a meeting? (yes/no) ', (answer) => {
+      const isInMeeting = (answer.trim().toLowerCase() === 'yes');
+      // Emit the new "in-meeting-update" event
+      socket.emit('in-meeting-update', {
+        username,
+        platform: targetPlatform,
+        isInMeeting
+      });
+
+      console.log(`\n[INFO] in-meeting-update => user="${username}" platform="${targetPlatform}" isInMeeting="${isInMeeting}"`);
+      showMainMenu();
+    });
   });
 }
 
